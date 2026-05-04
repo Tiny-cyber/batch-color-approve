@@ -61,11 +61,41 @@ Pop-Location
 # 创建工作台目录
 New-Item -ItemType Directory -Path "$WorkDir\批色报告" -Force | Out-Null
 
-# 生成 .bat 启动器
+# 生成 启动调试浏览器.bat
+$browserBat = @"
+@echo off
+echo 正在启动调试浏览器...
+
+set CHROME=
+if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" set CHROME=%ProgramFiles%\Google\Chrome\Application\chrome.exe
+if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" set CHROME=%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe
+if exist "%LocalAppData%\Google\Chrome\Application\chrome.exe" set CHROME=%LocalAppData%\Google\Chrome\Application\chrome.exe
+
+if "%CHROME%"=="" (
+    echo 未找到 Chrome，请先安装 Google Chrome
+    pause
+    exit /b 1
+)
+
+start "" "%CHROME%" --remote-debugging-port=9222 --user-data-dir="%USERPROFILE%\chrome-debug-profile" --no-first-run --no-default-browser-check "https://sso.geiwohuo.com/#/mes-app/future/factory/purchase/batch-color-management" "https://www.kdocs.cn"
+
+echo.
+echo 浏览器已启动，请完成以下操作：
+echo   1. 登录 SHEIN 供应商系统（夏锦棠账号）
+echo   2. 打开共享表格（2026批色表）
+echo.
+echo 登录完成后，以后直接双击「一键批色.bat」即可
+pause
+"@
+[System.IO.File]::WriteAllText("$WorkDir\启动调试浏览器.bat", $browserBat, [System.Text.Encoding]::Default)
+
+# 生成 一键批色.bat
 $batContent = @"
 @echo off
 
-for /f "tokens=*" %%a in ('powershell -NoProfile -Command "(Get-Date).AddDays(-1).ToString('yyyy-MM-dd')"') do set YESTERDAY=%%a
+powershell -NoProfile -Command "(Get-Date).AddDays(-1).ToString('yyyy-MM-dd')" > %TEMP%\yesterday.txt
+set /p YESTERDAY=<%TEMP%\yesterday.txt
+del %TEMP%\yesterday.txt
 
 echo ==============================
 echo   一键批色助手
@@ -78,8 +108,8 @@ echo.
 set /p input_date=日期:
 echo.
 
-chcp 65001 >nul
 cd /d "$InstallDir"
+chcp 65001 >nul
 
 if "%input_date%"=="" (
     node batch-approve.js %YESTERDAY% --submit
@@ -100,10 +130,6 @@ Write-Host "  安装完成！"
 Write-Host "=============================="
 Write-Host ""
 Write-Host "位置: $WorkDir"
-Write-Host "  一键批色.bat  — 双击运行"
-Write-Host "  批色报告\     — 每次运行自动生成报告"
-Write-Host ""
-Write-Host "使用前确保："
-Write-Host "  1. Chrome 以 --remote-debugging-port=9222 启动"
-Write-Host "  2. 浏览器中打开并登录 sso.geiwohuo.com"
-Write-Host "  3. 浏览器中打开共享表格 (kdocs.cn)"
+Write-Host "  启动调试浏览器.bat — 首次使用先双击这个，登录一次"
+Write-Host "  一键批色.bat       — 以后每天双击这个就行"
+Write-Host "  批色报告\          — 每次运行自动生成报告"
