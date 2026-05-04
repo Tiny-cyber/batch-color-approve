@@ -2,7 +2,8 @@ $ErrorActionPreference = "Stop"
 
 $Repo = "Tiny-cyber/batch-color-approve"
 $InstallDir = "$env:USERPROFILE\Projects\批色助手"
-$LauncherFile = "$env:USERPROFILE\Desktop\一键批色.bat"
+$WorkDir = "$env:USERPROFILE\Desktop\工作台\电商\一键批色"
+$LauncherFile = "$WorkDir\一键批色.bat"
 
 Write-Host "=============================="
 Write-Host "  一键批色助手 — 安装脚本"
@@ -92,18 +93,18 @@ pause
 $batContent | Out-File -FilePath $LauncherFile -Encoding utf8
 
 # 报告目录
-New-Item -ItemType Directory -Path "$env:USERPROFILE\Desktop\工作台\电商\一键批色\批色报告" -Force | Out-Null
+New-Item -ItemType Directory -Path "$WorkDir\批色报告" -Force | Out-Null
 
 Write-Host ""
 Write-Host "=============================="
 Write-Host "  安装完成！"
 Write-Host "=============================="
 Write-Host ""
-Write-Host "桌面快捷方式: $LauncherFile"
+Write-Host "位置: $WorkDir"
+Write-Host "  一键批色.bat  — 双击运行"
+Write-Host "  批色报告\     — 每次运行自动生成报告"
 Write-Host ""
 Write-Host "使用前确保："
 Write-Host "  1. Chrome 以 --remote-debugging-port=9222 启动"
 Write-Host "  2. 浏览器中打开并登录 sso.geiwohuo.com"
 Write-Host "  3. 浏览器中打开共享表格 (kdocs.cn)"
-Write-Host ""
-Write-Host "双击桌面「一键批色.bat」即可使用"
