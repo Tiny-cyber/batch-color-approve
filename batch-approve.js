@@ -710,7 +710,7 @@ async function main() {
 
     // 保存报告（同一天追加到同一个文件）
     if (doSubmit && results.length > 0) {
-      const reportDir = path.join(require('os').homedir(), 'Desktop', '工作台', '电商', '一键批色', '批色报告');
+      const reportDir = path.join(require('os').homedir(), 'Desktop', '工作台', '一键批色', '批色报告');
       fs.mkdirSync(reportDir, { recursive: true });
       const reportFile = path.join(reportDir, `批色报告_${allDates ? ymd(new Date()) : targetDate}.txt`);
 

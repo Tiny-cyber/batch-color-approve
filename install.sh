@@ -86,7 +86,7 @@ EOF
 chmod +x "$COMMAND_FILE"
 
 # 报告目录
-mkdir -p "$HOME/Desktop/工作台/电商/一键批色/批色报告"
+mkdir -p "$HOME/Desktop/工作台/一键批色/批色报告"
 
 echo ""
 echo "=============================="
