@@ -58,6 +58,9 @@ Push-Location $InstallDir
 cmd /c "npm install --production"
 Pop-Location
 
+# 创建工作台目录
+New-Item -ItemType Directory -Path "$WorkDir\批色报告" -Force | Out-Null
+
 # 生成 .bat 启动器
 $batContent = @"
 @echo off
@@ -90,10 +93,7 @@ if "%input_date%"=="" (
 echo.
 pause
 "@
-$batContent | Out-File -FilePath $LauncherFile -Encoding utf8
-
-# 报告目录
-New-Item -ItemType Directory -Path "$WorkDir\批色报告" -Force | Out-Null
+[System.IO.File]::WriteAllText($LauncherFile, $batContent, [System.Text.UTF8Encoding]::new($false))
 
 Write-Host ""
 Write-Host "=============================="
