@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>批色助手 — 拖到收藏栏即装</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; line-height: 1.7; color: #222; }
+  h1 { color: #0a7; }
+  .install {
+    display: inline-block; padding: 12px 28px; background: #0a7; color: white;
+    text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;
+    cursor: grab; box-shadow: 0 2px 6px rgba(0,170,119,0.3);
+  }
+  .install:hover { background: #098; }
+  .step { background: #f5f5f5; padding: 16px 20px; border-radius: 8px; margin: 12px 0; }
+  code { background: #eee; padding: 2px 6px; border-radius: 3px; font-family: Menlo, monospace; }
+  pre { background: #1e1e1e; color: #ddd; padding: 12px 16px; border-radius: 6px; overflow-x: auto; }
+  .warn { background: #fff8e1; border-left: 4px solid #ffc107; padding: 10px 14px; }
+  .ok { background: #e8f5e9; border-left: 4px solid #4caf50; padding: 10px 14px; }
+</style>
+</head>
+<body>
+
+<h1>批色助手 — 拖到收藏栏即装</h1>
+
+<p>把下面这个绿色按钮 <strong>拖</strong> 到浏览器的收藏栏（书签栏）：</p>
+
+<p><a class="install" href='javascript:void(0)' id="bm">📋 批色助手</a></p>
+
+<div class="step">
+<strong>使用</strong>
+<ol>
+  <li>在 <code>sso.geiwohuo.com</code> 或 <code>vocpub.dotfashion.cn</code> 任意页面，<strong>点一下收藏栏的"批色助手"</strong></li>
+  <li>F12 打开 console，会看到「✅ 批色助手已就绪」</li>
+  <li>用法：
+<pre>// 在 sso.geiwohuo.com（批色管理页）
+pibao.list()                                        // 拉待批色清单
+
+// 在 vocpub.dotfashion.cn（点"去自批"会打开此域）
+pibao.detail('MLSH-29080605-001', 'M01326543')      // 看一条详情
+pibao.dryRun('MLSH-29080605-001', 'M01326543')      // 不真发，只打 body
+pibao.save('MLSH-29080605-001', 'M01326543')        // 真保存草稿（可被覆盖）
+pibao.submitPass('MLSH-29080605-001', 'M01326543')  // 真审核通过（不可逆）
+
+// 批量
+pibao.batchSubmit([
+  {orderNo:'MLSH-29080605-001', sku:'M01326543'},
+  {orderNo:'MLSH-29080437-001', sku:'M01154021', weight: 220},
+], { reallySubmit: true })</pre>
+  </li>
+</ol>
+</div>
+
+<div class="ok">
+<strong>已 verified（2026-04-28）：</strong>
+list / detail / materialInfo / save 4 个 API 全部跑通。<br>
+对 <code>MLSH-29080605-001 / M01326543</code> 跑过一次 save，服务端返回 <code>{code:0, msg:"success"}</code>，记录从 version 1 → 2，bomPmState 1 → 2，weightMeasureValue 0 → 220.00，且仍在待批列表（save 不审核，符合预期）。
+</div>
+
+<div class="warn">
+<strong>风险等级：</strong><br>
+🟢 list / detail / dryRun / materialInfo — 完全只读 / 不真发<br>
+🟡 save — 写入草稿但不进入审核流程，可被覆盖<br>
+🔴 submitPass / batchSubmit(reallySubmit:true) — 真审核通过，记录从待批列表消失，对外可见<br>
+首次真跑前先 dryRun 看 body，确认无误再 submitPass 一条试试。
+</div>
+
+<script>
+// 把 bookmarklet 内容塞到 a 标签里（绕过浏览器对 javascript: href 在 HTML 里的安全限制）
+fetch('批色助手-bookmarklet.txt')
+  .then(r => r.text())
+  .then(bm => { document.getElementById('bm').setAttribute('href', bm); })
+  .catch(() => {
+    document.getElementById('bm').textContent = '请到目录里手动拷贝 批色助手-bookmarklet.txt 内容';
+  });
+</script>
+
+</body>
+</html>
