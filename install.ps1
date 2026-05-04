@@ -55,7 +55,7 @@ if (Test-Path "$InstallDir\.git") {
 # 安装依赖
 Write-Host "安装依赖..."
 Push-Location $InstallDir
-& npm install --production
+& npm.cmd install --production
 Pop-Location
 
 # 生成 .bat 启动器
