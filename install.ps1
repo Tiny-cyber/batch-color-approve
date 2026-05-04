@@ -1,135 +1,84 @@
+# 一键批色助手 - Windows 安装脚本
+# 用法: irm https://raw.githubusercontent.com/Tiny-cyber/batch-color-approve/main/install.ps1 | iex
+
 $ErrorActionPreference = "Stop"
 
-$Repo = "Tiny-cyber/batch-color-approve"
-$InstallDir = "$env:USERPROFILE\Projects\批色助手"
-$WorkDir = "$env:USERPROFILE\Desktop\工作台\一键批色"
-$LauncherFile = "$WorkDir\一键批色.bat"
+Set-ExecutionPolicy Bypass -Scope Process -Force
 
 Write-Host "=============================="
-Write-Host "  一键批色助手 — 安装脚本"
-Write-Host "=============================="
-Write-Host ""
+Write-Host "  一键批色助手 - Windows 安装"
+Write-Host "==============================`n"
 
-# 检查 Node.js
-$nodePath = Get-Command node -ErrorAction SilentlyContinue
-if ($nodePath) {
-    $nodeVer = & node -v
-    Write-Host "√ Node.js $nodeVer"
+# 1. 检查 Node.js
+if (Get-Command node -ErrorAction SilentlyContinue) {
+    Write-Host "[OK] Node.js: $(node -v)"
 } else {
-    Write-Host "未检测到 Node.js，正在安装..."
-    $arch = if ([Environment]::Is64BitOperatingSystem) { "x64" } else { "x86" }
-    $nodeUrl = "https://nodejs.org/dist/v22.15.0/node-v22.15.0-$arch.msi"
-    $msiPath = "$env:TEMP\node-install.msi"
-    Write-Host "  下载 Node.js LTS..."
-    Invoke-WebRequest -Uri $nodeUrl -OutFile $msiPath
-    Write-Host "  安装中（需要管理员权限）..."
-    Start-Process msiexec.exe -ArgumentList "/i `"$msiPath`" /qn" -Wait -Verb RunAs
-    Remove-Item $msiPath -ErrorAction SilentlyContinue
-    $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
-    $nodeVer = & node -v
-    Write-Host "√ Node.js $nodeVer 安装完成"
+    Write-Host "Node.js 未安装，正在自动安装..."
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements
+        $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
+        if (Get-Command node -ErrorAction SilentlyContinue) {
+            Write-Host "[OK] Node.js 已安装: $(node -v)"
+        } else {
+            Write-Host "[!] Node.js 安装完成，但需要重新打开终端才能生效"
+            Write-Host "    请关掉这个窗口，重新运行安装命令"
+            Read-Host "按回车退出"
+            exit 1
+        }
+    } else {
+        Write-Host "[!] 请手动安装 Node.js: https://nodejs.org/"
+        Read-Host "按回车退出"
+        exit 1
+    }
 }
 
-# 检查 git
-$gitPath = Get-Command git -ErrorAction SilentlyContinue
-if (-not $gitPath) {
-    Write-Host ""
-    Write-Host "× 未检测到 Git，请先安装: https://git-scm.com/download/win"
-    Write-Host "  安装后重新运行本脚本"
-    Read-Host "按回车退出"
-    exit 1
-}
-
-# 克隆或更新
-if (Test-Path "$InstallDir\.git") {
-    Write-Host "已存在，拉取最新..."
-    Push-Location $InstallDir
-    & git pull
-    Pop-Location
+# 2. 检查 Git
+if (Get-Command git -ErrorAction SilentlyContinue) {
+    Write-Host "[OK] Git: $(git --version)"
 } else {
-    Write-Host "克隆项目..."
-    New-Item -ItemType Directory -Path (Split-Path $InstallDir) -Force | Out-Null
-    & git clone "https://github.com/$Repo.git" $InstallDir
+    Write-Host "Git 未安装，正在自动安装..."
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        winget install Git.Git --accept-source-agreements --accept-package-agreements
+        $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
+        if (Get-Command git -ErrorAction SilentlyContinue) {
+            Write-Host "[OK] Git 已安装"
+        } else {
+            Write-Host "[!] Git 安装完成，但需要重新打开终端才能生效"
+            Write-Host "    请关掉这个窗口，重新运行安装命令"
+            Read-Host "按回车退出"
+            exit 1
+        }
+    } else {
+        Write-Host "[!] 请手动安装 Git: https://git-scm.com/"
+        Read-Host "按回车退出"
+        exit 1
+    }
 }
 
-# 安装依赖
+# 3. 下载项目
+$installDir = "$HOME\Projects\批色助手"
+if (Test-Path "$installDir\.git") {
+    Write-Host "[OK] 项目已存在，更新中..."
+    Set-Location $installDir
+    git pull
+} else {
+    if (Test-Path $installDir) {
+        Write-Host "检测到旧版本（非 git），清理后重新下载..."
+        Remove-Item -Recurse -Force $installDir
+    }
+    Write-Host "下载项目..."
+    New-Item -ItemType Directory -Path "$HOME\Projects" -Force | Out-Null
+    git clone https://github.com/Tiny-cyber/batch-color-approve.git $installDir
+    Set-Location $installDir
+}
+
+# 4. 安装依赖
 Write-Host "安装依赖..."
-Push-Location $InstallDir
-cmd /c "npm install --production"
-Pop-Location
+npm install --silent
+Write-Host "[OK] 依赖安装完成"
 
-# 创建工作台目录
-New-Item -ItemType Directory -Path "$WorkDir\批色报告" -Force | Out-Null
+# 5. 用 install.js 创建工作台目录和桌面脚本
+Write-Host "创建桌面快捷脚本..."
+node install.js
 
-# 生成 启动调试浏览器.bat
-$browserBat = @"
-@echo off
-echo 正在启动调试浏览器...
-
-set CHROME=
-if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" set CHROME=%ProgramFiles%\Google\Chrome\Application\chrome.exe
-if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" set CHROME=%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe
-if exist "%LocalAppData%\Google\Chrome\Application\chrome.exe" set CHROME=%LocalAppData%\Google\Chrome\Application\chrome.exe
-
-if "%CHROME%"=="" (
-    echo 未找到 Chrome，请先安装 Google Chrome
-    pause
-    exit /b 1
-)
-
-start "" "%CHROME%" --remote-debugging-port=9222 --user-data-dir="%USERPROFILE%\chrome-debug-profile" --no-first-run --no-default-browser-check "https://sso.geiwohuo.com/#/mes-app/future/factory/purchase/batch-color-management" "https://www.kdocs.cn"
-
-echo.
-echo 浏览器已启动，请完成以下操作：
-echo   1. 登录 SHEIN 供应商系统（夏锦棠账号）
-echo   2. 打开共享表格（2026批色表）
-echo.
-echo 登录完成后，以后直接双击「一键批色.bat」即可
-pause
-"@
-[System.IO.File]::WriteAllText("$WorkDir\启动调试浏览器.bat", $browserBat, [System.Text.Encoding]::Default)
-
-# 生成 一键批色.bat
-$batContent = @"
-@echo off
-
-powershell -NoProfile -Command "(Get-Date).AddDays(-1).ToString('yyyy-MM-dd')" > %TEMP%\yesterday.txt
-set /p YESTERDAY=<%TEMP%\yesterday.txt
-del %TEMP%\yesterday.txt
-
-echo ==============================
-echo   一键批色助手
-echo ==============================
-echo.
-echo 请输入日期（格式 YYYY-MM-DD）
-echo 直接按回车 = 昨天 (%YESTERDAY%)
-echo 输入 all = 处理全部待批色
-echo.
-set /p input_date=日期:
-echo.
-
-cd /d "$InstallDir"
-chcp 65001 >nul
-
-if "%input_date%"=="" (
-    node batch-approve.js %YESTERDAY% --submit
-) else if /i "%input_date%"=="all" (
-    node batch-approve.js --all --submit
-) else (
-    node batch-approve.js %input_date% --submit
-)
-
-echo.
-pause
-"@
-[System.IO.File]::WriteAllText($LauncherFile, $batContent, [System.Text.Encoding]::Default)
-
-Write-Host ""
-Write-Host "=============================="
-Write-Host "  安装完成！"
-Write-Host "=============================="
-Write-Host ""
-Write-Host "位置: $WorkDir"
-Write-Host "  启动调试浏览器.bat — 首次使用先双击这个，登录一次"
-Write-Host "  一键批色.bat       — 以后每天双击这个就行"
-Write-Host "  批色报告\          — 每次运行自动生成报告"
+Read-Host "`n按回车关闭"
