@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $Repo = "Tiny-cyber/batch-color-approve"
 $InstallDir = "$env:USERPROFILE\Projects\批色助手"
-$WorkDir = "$env:USERPROFILE\Desktop\工作台\电商\一键批色"
+$WorkDir = "$env:USERPROFILE\Desktop\工作台\一键批色"
 $LauncherFile = "$WorkDir\一键批色.bat"
 
 Write-Host "=============================="
@@ -64,23 +64,22 @@ New-Item -ItemType Directory -Path "$WorkDir\批色报告" -Force | Out-Null
 # 生成 .bat 启动器
 $batContent = @"
 @echo off
-chcp 65001 >nul
-cd /d "$InstallDir"
+
+for /f "tokens=*" %%a in ('powershell -NoProfile -Command "(Get-Date).AddDays(-1).ToString('yyyy-MM-dd')"') do set YESTERDAY=%%a
 
 echo ==============================
 echo   一键批色助手
 echo ==============================
 echo.
-
-:: 计算昨天日期
-for /f "tokens=*" %%a in ('powershell -NoProfile -Command "(Get-Date).AddDays(-1).ToString('yyyy-MM-dd')"') do set YESTERDAY=%%a
-
 echo 请输入日期（格式 YYYY-MM-DD）
 echo 直接按回车 = 昨天 (%YESTERDAY%)
 echo 输入 all = 处理全部待批色
 echo.
 set /p input_date=日期:
 echo.
+
+chcp 65001 >nul
+cd /d "$InstallDir"
 
 if "%input_date%"=="" (
     node batch-approve.js %YESTERDAY% --submit
@@ -93,7 +92,7 @@ if "%input_date%"=="" (
 echo.
 pause
 "@
-[System.IO.File]::WriteAllText($LauncherFile, $batContent, [System.Text.UTF8Encoding]::new($false))
+[System.IO.File]::WriteAllText($LauncherFile, $batContent, [System.Text.Encoding]::Default)
 
 Write-Host ""
 Write-Host "=============================="
