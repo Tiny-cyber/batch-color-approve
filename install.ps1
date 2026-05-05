@@ -56,7 +56,7 @@ if (Get-Command git -ErrorAction SilentlyContinue) {
 }
 
 # 3. 下载项目
-$installDir = "$HOME\Projects\批色助手"
+$installDir = "$HOME\Projects\batch-approve"
 if (Test-Path "$installDir\.git") {
     Write-Host "[OK] 项目已存在，更新中..."
     Set-Location $installDir

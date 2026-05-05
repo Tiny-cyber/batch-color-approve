@@ -39,7 +39,7 @@ console.log('√ 工作台目录已创建');
 
 // 3. 创建浏览器调试模式启动脚本
 const debugBat = path.join(workDir, '启动调试浏览器.bat');
-fs.writeFileSync(debugBat, [
+const debugContent = [
   '@echo off',
   'chcp 65001 >nul',
   `title 调试浏览器 - ${browser.name}`,
@@ -52,12 +52,13 @@ fs.writeFileSync(debugBat, [
   'echo.',
   'echo 登录完成后，以后直接双击「一键批色.bat」即可',
   'pause',
-].join('\r\n'), 'utf8');
+].join('\r\n');
+fs.writeFileSync(debugBat, '﻿' + debugContent, 'utf8');
 console.log(`√ 调试浏览器启动脚本已创建（使用 ${browser.name}）`);
 
 // 4. 创建一键批色脚本
 const batchBat = path.join(workDir, '一键批色.bat');
-fs.writeFileSync(batchBat, [
+const batchContent = [
   '@echo off',
   'chcp 65001 >nul',
   'title 一键批色助手',
@@ -85,7 +86,8 @@ fs.writeFileSync(batchBat, [
   '',
   'echo.',
   'pause',
-].join('\r\n'), 'utf8');
+].join('\r\n');
+fs.writeFileSync(batchBat, '﻿' + batchContent, 'utf8');
 console.log('√ 一键批色脚本已创建');
 
 // 完成

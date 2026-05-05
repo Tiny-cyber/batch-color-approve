@@ -2,7 +2,7 @@
 set -e
 
 REPO="Tiny-cyber/batch-color-approve"
-INSTALL_DIR="$HOME/Projects/批色助手"
+INSTALL_DIR="$HOME/Projects/batch-approve"
 COMMAND_FILE="$HOME/Desktop/一键批色.command"
 
 echo "=============================="
