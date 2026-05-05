@@ -39,55 +39,22 @@ console.log('√ 工作台目录已创建');
 
 // 3. 创建浏览器调试模式启动脚本
 const debugBat = path.join(workDir, '启动调试浏览器.bat');
-const debugContent = [
+fs.writeFileSync(debugBat, [
   '@echo off',
-  'chcp 65001 >nul',
-  `title 调试浏览器 - ${browser.name}`,
   `start "" "${browser.path}" --remote-debugging-port=9222 --user-data-dir="${path.join(home, '.chrome-debug-profile')}" --no-first-run --no-default-browser-check "https://sso.geiwohuo.com/#/mes-app/future/factory/purchase/batch-color-management" "https://www.kdocs.cn"`,
-  '',
-  'echo.',
-  'echo 浏览器已启动，请完成以下操作：',
-  'echo   1. 登录 SHEIN 供应商系统（夏锦棠账号）',
-  'echo   2. 打开共享表格（2026批色表）',
-  'echo.',
-  'echo 登录完成后，以后直接双击「一键批色.bat」即可',
-  'pause',
-].join('\r\n');
-fs.writeFileSync(debugBat, '﻿' + debugContent, 'utf8');
+].join('\r\n'), 'utf8');
 console.log(`√ 调试浏览器启动脚本已创建（使用 ${browser.name}）`);
 
-// 4. 创建一键批色脚本
+// 4. 创建一键批色脚本（纯 ASCII，中文交给 Node.js 输出）
 const batchBat = path.join(workDir, '一键批色.bat');
-const batchContent = [
+fs.writeFileSync(batchBat, [
   '@echo off',
   'chcp 65001 >nul',
-  'title 一键批色助手',
   `cd /d "${projectDir}"`,
-  '',
-  'echo ==============================',
-  'echo   一键批色助手',
-  'echo ==============================',
-  'echo.',
-  '',
-  'for /f "usebackq" %%a in (`powershell -command "(Get-Date).AddDays(-1).ToString(\'yyyy-MM-dd\')"`) do set YESTERDAY=%%a',
-  '',
-  'echo 请输入日期（格式 YYYY-MM-DD）',
-  'echo   直接按回车 = 昨天 %YESTERDAY%',
-  'echo   输入 all = 处理全部待批色',
-  'echo.',
-  'set /p "INPUT_DATE=> "',
-  'if "%INPUT_DATE%"=="" set "INPUT_DATE=%YESTERDAY%"',
-  '',
-  'if /i "%INPUT_DATE%"=="all" (',
-  '    node batch-approve.js --all --submit',
-  ') else (',
-  '    node batch-approve.js %INPUT_DATE% --submit',
-  ')',
-  '',
+  'node run-interactive.js',
   'echo.',
   'pause',
-].join('\r\n');
-fs.writeFileSync(batchBat, '﻿' + batchContent, 'utf8');
+].join('\r\n'), 'utf8');
 console.log('√ 一键批色脚本已创建');
 
 // 完成
