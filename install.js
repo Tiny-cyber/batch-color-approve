@@ -51,6 +51,7 @@ fs.writeFileSync(batchBat, [
   '@echo off',
   'chcp 65001 >nul',
   `cd /d "${projectDir}"`,
+  'git pull --ff-only >nul 2>&1',
   'node run-interactive.js',
   'echo.',
   'pause',
